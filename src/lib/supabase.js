@@ -13,7 +13,7 @@ export const supabase = hasSupabase ? createClient(SUPABASE_URL, SUPABASE_ANON) 
 export async function listPages() {
   const { data, error } = await supabase
     .from("cb_pages")
-    .select("id,name,updated_at,published")
+    .select("id,name,updated_at,published,ab_enabled,ab_variant,ab_split")
     .order("updated_at", { ascending: false });
   if (error) throw error;
   return data;
@@ -148,4 +148,76 @@ export async function markMessageRead(id, read = true) {
 export async function deleteMessage(id) {
   const { error } = await supabase.from("cb_messages").delete().eq("id", id);
   if (error) throw error;
+}
+
+// ── Fáza 4: A/B varianty (model „linked page") ─────────────────
+//  Stránka A drží konfiguráciu; variant B je samostatná cb_pages stránka.
+export async function setAb(id, { enabled, variant, split }) {
+  const patch = {};
+  if (enabled !== undefined) patch.ab_enabled = !!enabled;
+  if (variant !== undefined) patch.ab_variant = variant || null;
+  if (split !== undefined) patch.ab_split = Math.max(0, Math.min(100, Number(split) || 0));
+  const { error } = await supabase.from("cb_pages").update(patch).eq("id", id);
+  if (error) throw error;
+}
+
+// Sticky výber variantu pre návštevníka (localStorage), split = % na A.
+export function pickAbVariant(row) {
+  if (!row || !row.ab_enabled || !row.ab_variant) return "a";
+  if (typeof window === "undefined") return "a";
+  const key = "cb_ab_" + row.id;
+  let v = localStorage.getItem(key);
+  if (v !== "a" && v !== "b") {
+    const sp = Number(row.ab_split);
+    const pctA = Number.isFinite(sp) ? sp : 50; // pozor: split 0 = 100 % B (0 je falsy!)
+    v = Math.random() * 100 < pctA ? "a" : "b";
+    try { localStorage.setItem(key, v); } catch {}
+  }
+  return v;
+}
+
+// Aktívny variant zobrazenej stránky — na napojenie konverzií (formuláre).
+export function setActiveVariant(pageId, variant) {
+  if (typeof window === "undefined") return;
+  try { localStorage.setItem("cb_ab_active_" + pageId, variant); } catch {}
+}
+export function getActiveVariant(pageId) {
+  if (typeof window === "undefined") return "a";
+  return localStorage.getItem("cb_ab_active_" + pageId) || "a";
+}
+
+export async function logAbEvent(pageId, variant, kind) {
+  if (!hasSupabase || !pageId) return;
+  try {
+    await supabase.from("cb_ab_events").insert({ page_id: pageId, variant, kind });
+  } catch (e) { /* tichý fail — meranie nesmie rozbiť stránku */ }
+}
+
+// ── Fáza 4: Roly a práva — správa používateľov cez RPC ─────────
+export async function listUsers() {
+  const { data, error } = await supabase.rpc("cb_users_list");
+  if (error) throw error;
+  return data || [];
+}
+export async function upsertUser({ id, name, code, role, active }) {
+  const { error } = await supabase.rpc("cb_user_upsert", {
+    p_id: id, p_name: name, p_code: code || "", p_role: role, p_active: active !== false,
+  });
+  if (error) throw error;
+}
+export async function deleteUser(id) {
+  const { error } = await supabase.rpc("cb_user_delete", { p_id: id });
+  if (error) throw error;
+}
+
+// Agregované počty pre admin panel: { a:{view,convert}, b:{view,convert} }.
+export async function abStats(pageId) {
+  const out = { a: { view: 0, convert: 0 }, b: { view: 0, convert: 0 } };
+  const { data, error } = await supabase.from("cb_ab_events")
+    .select("variant,kind").eq("page_id", pageId).limit(10000);
+  if (error) throw error;
+  for (const r of data || []) {
+    if (out[r.variant] && r.kind in out[r.variant]) out[r.variant][r.kind]++;
+  }
+  return out;
 }

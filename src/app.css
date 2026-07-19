@@ -59,3 +59,28 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);fon
 .vh-date{font-size:12.5px;font-weight:600}
 .vh-label{font-size:11.5px;color:var(--muted)}
 .vh-empty{color:var(--muted);font-size:12.5px;text-align:center;padding:18px 0}
+
+/* ── Fáza 4: A/B panel (admin) ─────────────────────────────────── */
+.pg-badge.ab{background:var(--volt-soft);color:var(--volt-2);margin-left:8px}
+.ab-panel{background:var(--panel);border:1px solid var(--border);border-top:none;
+  border-radius:0 0 12px 12px;padding:14px 16px;margin:-6px 0 10px}
+.ab-row{display:flex;flex-wrap:wrap;align-items:center;gap:14px}
+.ab-check{display:flex;align-items:center;gap:7px;font-weight:600;font-size:13.5px}
+.ab-field{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+.ab-field select,.ab-field input[type=range]{font-family:inherit;font-size:13px}
+.ab-field select{background:var(--card);border:1px solid var(--border);border-radius:8px;
+  color:var(--text);padding:7px 9px;min-width:180px}
+.ab-field input[type=range]{width:170px;accent-color:var(--volt)}
+.ab-msg{font-size:12.5px;color:var(--volt-2)}
+.ab-hint{font-size:12px;color:var(--muted);margin-top:8px}
+.ab-stats{display:flex;flex-wrap:wrap;gap:18px;margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.ab-stat{font-size:13px;color:var(--text);display:flex;align-items:center;gap:8px}
+.ab-tag{width:22px;height:22px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;
+  font-weight:800;font-size:12px;color:#fff}
+.ab-tag.ab-a{background:var(--volt)}
+.ab-tag.ab-b{background:#5aa9ff}
+
+/* ── Fáza 4: RBAC topbar ────────────────────────────────────────── */
+.adm-topbar{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.adm-user{display:flex;align-items:center;gap:10px}
+.adm-user__name{font-size:13px;color:var(--muted)}

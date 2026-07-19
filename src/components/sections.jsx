@@ -222,11 +222,17 @@ export function CTABanner({ sectionId, heading, text, ctaLabel, ctaHref }) {
 }
 
 // ── 10 Contact form (Fáza 3: ukladá do cb_messages, mailto fallback) ──
-import { hasSupabase, submitMessage } from "../lib/supabase.js";
+import { hasSupabase, submitMessage, logAbEvent, getActiveVariant } from "../lib/supabase.js";
 
 function currentPageId() {
   const q = new URLSearchParams(window.location.search);
   return q.get("view") || q.get("page") || "";
+}
+
+// Fáza 4 A/B — zaznamenaj konverziu pre práve zobrazený variant.
+function trackConversion() {
+  const id = currentPageId();
+  if (id) logAbEvent(id, getActiveVariant(id), "convert");
 }
 
 export function ContactForm({ sectionId, heading, subheading, buttonLabel = "Odoslať", email }) {
@@ -239,6 +245,7 @@ export function ContactForm({ sectionId, heading, subheading, buttonLabel = "Odo
       setState("sending");
       try {
         await submitMessage({ pageId: currentPageId(), name: payload.name, email: payload.from, message: payload.message });
+        trackConversion();
         setState("sent");
         return;
       } catch (err) {
@@ -251,6 +258,7 @@ export function ContactForm({ sectionId, heading, subheading, buttonLabel = "Odo
       window.location.href = "mailto:" + email +
         "?subject=" + encodeURIComponent("Správa z webu — " + payload.name) +
         "&body=" + encodeURIComponent(payload.message + "\n\n" + payload.from);
+      trackConversion();
       setState("sent");
     }
   };
@@ -352,6 +360,254 @@ export function TeamCards({ sectionId, heading, subheading, items = [] }) {
             </div>
           </div>
         ))}
+      </div>
+    </Sec>
+  );
+}
+
+// ── 15 Announcement bar (70) — dismissible top lišta ───────────
+export function AnnouncementBar({ text, linkLabel, linkHref, dismissible = true }) {
+  const [gone, setGone] = useState(false);
+  if (gone) return null;
+  return (
+    <div className="mv-annbar">
+      <div className="mv-container mv-annbar__in">
+        <span className="mv-annbar__text">
+          {text} {linkLabel && <a href={linkHref || "#"}>{linkLabel} →</a>}
+        </span>
+        {dismissible && (
+          <button className="mv-annbar__x" onClick={() => setGone(true)} aria-label="Zavrieť">✕</button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── 16 Feature tabs (33-animated-tabs) ─────────────────────────
+export function FeatureTabs({ sectionId, heading, subheading, tabs = [] }) {
+  const [i, setI] = useState(0);
+  const cur = tabs[i] || {};
+  return (
+    <Sec id={sectionId} head={heading} sub={subheading}>
+      <div className="mv-tabs">
+        <div className="mv-tabs__bar" role="tablist">
+          {tabs.map((t, j) => (
+            <button key={j} role="tab" aria-selected={j === i}
+              className={"mv-tabs__btn" + (j === i ? " on" : "")} onClick={() => setI(j)}>
+              {t.label}
+            </button>
+          ))}
+        </div>
+        <div className="mv-tabs__panel" key={i}>
+          <div className="mv-tabs__body">
+            <h3>{cur.title}</h3>
+            <p>{cur.text}</p>
+          </div>
+          {cur.image && <img className="mv-tabs__img" src={cur.image} alt={cur.title || ""} loading="lazy" />}
+        </div>
+      </div>
+    </Sec>
+  );
+}
+
+// ── 17 Timeline (34) ───────────────────────────────────────────
+export function Timeline({ sectionId, heading, subheading, items = [] }) {
+  return (
+    <Sec id={sectionId} head={heading} sub={subheading}>
+      <div className="mv-tl">
+        {items.map((it, i) => (
+          <div className="mv-tl__item" key={i}>
+            <div className="mv-tl__dot" />
+            <div className="mv-tl__card">
+              {it.date && <span className="mv-tl__date">{it.date}</span>}
+              <h3>{it.title}</h3>
+              <p>{it.text}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </Sec>
+  );
+}
+
+// ── 18 Steps — „Ako to funguje" (57-stepper) ───────────────────
+export function Steps({ sectionId, heading, subheading, items = [] }) {
+  return (
+    <Sec id={sectionId} head={heading} sub={subheading}>
+      <div className="mv-steps" style={{ "--steps": Math.max(items.length, 1) }}>
+        {items.map((it, i) => (
+          <div className="mv-steps__item" key={i}>
+            <div className="mv-steps__num">{it.icon || (i + 1)}</div>
+            <h3>{it.title}</h3>
+            <p>{it.text}</p>
+          </div>
+        ))}
+      </div>
+    </Sec>
+  );
+}
+
+// ── 19 Portfolio grid (37-hover-grid) ──────────────────────────
+export function PortfolioGrid({ sectionId, heading, subheading, columns = 3, items = [] }) {
+  return (
+    <Sec id={sectionId} head={heading} sub={subheading}>
+      <div className="mv-pf" style={{ "--pf-cols": columns }}>
+        {items.map((it, i) => (
+          <a className="mv-pf__card" key={i} href={it.href || "#"}>
+            {it.image && <img src={it.image} alt={it.title || ""} loading="lazy" />}
+            <div className="mv-pf__overlay">
+              <h3>{it.title}</h3>
+              {it.tag && <span className="mv-pf__tag">{it.tag}</span>}
+            </div>
+          </a>
+        ))}
+      </div>
+    </Sec>
+  );
+}
+
+// ── 20 Before / After (38) — porovnávací posuvník ──────────────
+export function BeforeAfter({ sectionId, heading, subheading, before, after, labelBefore = "Pred", labelAfter = "Po" }) {
+  const [pos, setPos] = useState(50);
+  const ref = useRef(null);
+  const drag = useRef(false);
+  const move = (clientX) => {
+    const el = ref.current; if (!el) return;
+    const r = el.getBoundingClientRect();
+    setPos(Math.max(0, Math.min(100, ((clientX - r.left) / r.width) * 100)));
+  };
+  return (
+    <Sec id={sectionId} head={heading} sub={subheading}>
+      <div className="mv-ba" ref={ref}
+        onPointerDown={(e) => { drag.current = true; move(e.clientX); }}
+        onPointerMove={(e) => drag.current && move(e.clientX)}
+        onPointerUp={() => (drag.current = false)}
+        onPointerLeave={() => (drag.current = false)}>
+        {after && <img className="mv-ba__img" src={after} alt={labelAfter} draggable="false" />}
+        <div className="mv-ba__clip" style={{ width: pos + "%" }}>
+          {before && <img className="mv-ba__img" src={before} alt={labelBefore} draggable="false" />}
+          <span className="mv-ba__lbl mv-ba__lbl--b">{labelBefore}</span>
+        </div>
+        <span className="mv-ba__lbl mv-ba__lbl--a">{labelAfter}</span>
+        <div className="mv-ba__handle" style={{ left: pos + "%" }}><span>⇔</span></div>
+      </div>
+    </Sec>
+  );
+}
+
+// ── 21 Logo cloud (67) — statická mriežka log ──────────────────
+export function LogoCloud({ sectionId, heading, items = [] }) {
+  return (
+    <Sec id={sectionId} head={heading}>
+      <div className="mv-logos">
+        {items.map((it, i) => (
+          it.image
+            ? <img className="mv-logos__img" key={i} src={it.image} alt={it.label || ""} loading="lazy" />
+            : <span className="mv-logos__txt" key={i}>{it.label}</span>
+        ))}
+      </div>
+    </Sec>
+  );
+}
+
+// ── 22 Comparison table (68) ───────────────────────────────────
+export function ComparisonTable({ sectionId, heading, subheading, cols = [], rows = [] }) {
+  const yes = (v) => {
+    const s = String(v).trim().toLowerCase();
+    if (s === "✓" || s === "ano" || s === "áno" || s === "yes" || s === "true")
+      return <span className="mv-cmp__yes">✓</span>;
+    if (s === "✕" || s === "x" || s === "nie" || s === "no" || s === "false" || s === "-")
+      return <span className="mv-cmp__no">✕</span>;
+    return v;
+  };
+  return (
+    <Sec id={sectionId} head={heading} sub={subheading}>
+      <div className="mv-cmp__wrap">
+        <table className="mv-cmp">
+          <thead>
+            <tr>
+              <th></th>
+              {cols.map((c, i) => (
+                <th key={i} className={c.highlighted ? "hot" : ""}>{c.label}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => {
+              const cells = (r.values || "").split("|");
+              return (
+                <tr key={i}>
+                  <td className="mv-cmp__feat">{r.feature}</td>
+                  {cols.map((c, j) => (
+                    <td key={j} className={c.highlighted ? "hot" : ""}>{yes(cells[j] ?? "")}</td>
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </Sec>
+  );
+}
+
+// ── ADVANCED: Embed HTML (Fáza 4 code režim, MD §5) ────────────
+export function Embed({ sectionId, html, contained = true }) {
+  return (
+    <Sec id={sectionId}>
+      <div className={"mv-embed" + (contained ? " mv-embed--box" : "")}
+        dangerouslySetInnerHTML={{ __html: html || "" }} />
+    </Sec>
+  );
+}
+
+// ── ADVANCED: Code block / terminal (98-terminal-window) ───────
+export function CodeBlock({ sectionId, title = "terminal", code, lang }) {
+  return (
+    <Sec id={sectionId}>
+      <div className="mv-code">
+        <div className="mv-code__bar">
+          <span className="mv-code__dot" /><span className="mv-code__dot" /><span className="mv-code__dot" />
+          <span className="mv-code__title">{title}</span>
+          {lang && <span className="mv-code__lang">{lang}</span>}
+        </div>
+        <pre className="mv-code__body"><code>{code}</code></pre>
+      </div>
+    </Sec>
+  );
+}
+
+// ── 23 Newsletter (81) — zber e-mailov (→ cb_messages) ─────────
+export function Newsletter({ sectionId, heading, subheading, buttonLabel = "Prihlásiť sa", note }) {
+  const [state, setState] = useState("idle"); // idle | sending | sent
+  const submit = async (e) => {
+    e.preventDefault();
+    const email = new FormData(e.target).get("email") || "";
+    if (hasSupabase) {
+      setState("sending");
+      try {
+        await submitMessage({ pageId: currentPageId(), name: "[newsletter]", email, message: "Prihlásenie do newslettera" });
+      } catch (err) { console.error(err); }
+    }
+    trackConversion();
+    setState("sent");
+  };
+  return (
+    <Sec id={sectionId}>
+      <div className="mv-news">
+        {heading && <h2 className="mv-h">{heading}</h2>}
+        {subheading && <p className="mv-news__sub">{subheading}</p>}
+        {state === "sent" ? (
+          <div className="mv-form__ok">✓ Hotovo — ste v zozname.</div>
+        ) : (
+          <form className="mv-news__form" onSubmit={submit}>
+            <input name="email" type="email" placeholder="vas@email.sk" required />
+            <button className="mv-btn mv-btn--primary" disabled={state === "sending"}>
+              {state === "sending" ? "Odosielam…" : buttonLabel}
+            </button>
+          </form>
+        )}
+        {note && <p className="mv-news__note">{note}</p>}
       </div>
     </Sec>
   );

@@ -5,16 +5,19 @@
 import {
   Navbar, Hero, LogoMarquee, BentoGrid, Stats, Pricing,
   Testimonials, FAQ, CTABanner, ContactForm, Footer, TextBlock, Gallery, TeamCards,
+  AnnouncementBar, FeatureTabs, Timeline, Steps, PortfolioGrid, BeforeAfter,
+  LogoCloud, ComparisonTable, Newsletter, Embed, CodeBlock,
 } from "./components/sections.jsx";
 import "./theme.css";
 
-import { colorField, imageField, idField } from "./fields.jsx";
+import { colorField, imageField, idField, codeField } from "./fields.jsx";
 
 export const config = {
   categories: {
-    zaklad: { title: "Základ", components: ["Navbar", "Hero", "Footer"] },
-    sekcie: { title: "Sekcie", components: ["BentoGrid", "Stats", "Pricing", "Testimonials", "FAQ", "Gallery", "TeamCards", "TextBlock"] },
-    konverzie: { title: "Konverzie", components: ["CTABanner", "ContactForm", "LogoMarquee"] },
+    zaklad: { title: "Základ", components: ["AnnouncementBar", "Navbar", "Hero", "Footer"] },
+    sekcie: { title: "Sekcie", components: ["BentoGrid", "FeatureTabs", "Stats", "Steps", "Timeline", "Pricing", "ComparisonTable", "Testimonials", "FAQ", "Gallery", "PortfolioGrid", "BeforeAfter", "TeamCards", "TextBlock"] },
+    konverzie: { title: "Konverzie", components: ["CTABanner", "ContactForm", "Newsletter", "LogoMarquee", "LogoCloud"] },
+    pokrocile: { title: "Pokročilé (code)", components: ["Embed", "CodeBlock"] },
   },
 
   root: {
@@ -26,17 +29,22 @@ export const config = {
       surface: colorField("Karty / povrch"),
       text:    colorField("Text"),
       muted:   colorField("Tlmený text"),
+      // Fáza 4 — advanced code režim: vlastné CSS pre celú stránku.
+      // Cieli sa cez #id-sekcie (kotva) → override ktoréhokoľvek komponentu.
+      customCss: codeField("Vlastné CSS (advanced — cieľ cez #id-sekcie)", "CSS", 10),
     },
     defaultProps: {
       title: "Nová stránka",
       primary: "#ff6a00", accent: "#ff9540", bg: "#0a0604",
       surface: "#160d08", text: "#f4ece6", muted: "#8f8378",
+      customCss: "",
     },
-    render: ({ children, primary, accent, bg, surface, text, muted }) => (
+    render: ({ children, primary, accent, bg, surface, text, muted, customCss }) => (
       <div className="mv-page" style={{
         "--primary": primary, "--accent": accent, "--bg": bg,
         "--surface": surface, "--text": text, "--muted": muted,
       }}>
+        {customCss ? <style dangerouslySetInnerHTML={{ __html: customCss }} /> : null}
         {children}
       </div>
     ),
@@ -378,6 +386,262 @@ export const config = {
       },
       defaultProps: { sectionId: "", content: "Váš text…", muted: false },
       render: (p) => <TextBlock {...p} />,
+    },
+
+    AnnouncementBar: {
+      label: "Oznamovacia lišta (70)",
+      fields: {
+        text:        { type: "text", label: "Text" },
+        linkLabel:   { type: "text", label: "Odkaz — text (voliteľné)" },
+        linkHref:    { type: "text", label: "Odkaz — URL" },
+        dismissible: { type: "radio", label: "Dá sa zavrieť", options: [
+          { label: "Áno", value: true }, { label: "Nie", value: false },
+        ]},
+      },
+      defaultProps: {
+        text: "🎉 Nová akcia: prvý mesiac hostingu zdarma pri každom webe.",
+        linkLabel: "Zistiť viac", linkHref: "#cennik", dismissible: true,
+      },
+      render: (p) => <AnnouncementBar {...p} />,
+    },
+
+    FeatureTabs: {
+      label: "Funkcie v taboch (33)",
+      fields: {
+        sectionId: idField,
+        heading:    { type: "text", label: "Nadpis", contentEditable: true },
+        subheading: { type: "textarea", label: "Popis", contentEditable: true },
+        tabs: { type: "array", label: "Taby",
+          arrayFields: {
+            label: { type: "text", label: "Názov tabu" },
+            title: { type: "text", label: "Titulok" },
+            text:  { type: "textarea", label: "Text" },
+            image: imageField("Obrázok (voliteľný)"),
+          },
+          getItemSummary: (it) => it.label || "Tab" },
+      },
+      defaultProps: {
+        sectionId: "funkcie", heading: "Ako to funguje", subheading: "",
+        tabs: [
+          { label: "Návrh", title: "Najprv stratégia", text: "Prejdeme si ciele, cieľovku a konkurenciu. Pripravíme wireframe a obsahovú kostru.", image: "https://picsum.photos/seed/tab1/640/440" },
+          { label: "Dizajn", title: "Vizuálna identita", text: "Moderný dizajn na mieru značke — farby, typografia, mikrointerakcie.", image: "https://picsum.photos/seed/tab2/640/440" },
+          { label: "Spustenie", title: "Vývoj a launch", text: "Rýchly, responzívny web nasadený na produkcii vrátane SEO a analytiky.", image: "https://picsum.photos/seed/tab3/640/440" },
+        ],
+      },
+      render: (p) => <FeatureTabs {...p} />,
+    },
+
+    Steps: {
+      label: "Kroky / proces (57)",
+      fields: {
+        sectionId: idField,
+        heading:    { type: "text", label: "Nadpis", contentEditable: true },
+        subheading: { type: "textarea", label: "Popis", contentEditable: true },
+        items: { type: "array", label: "Kroky",
+          arrayFields: {
+            icon:  { type: "text", label: "Ikona / číslo (voliteľné)" },
+            title: { type: "text", label: "Titulok" },
+            text:  { type: "textarea", label: "Text" },
+          },
+          getItemSummary: (it) => it.title || "Krok" },
+      },
+      defaultProps: {
+        sectionId: "postup", heading: "3 kroky k novému webu", subheading: "",
+        items: [
+          { icon: "", title: "Konzultácia", text: "Bezplatný hovor, kde si ujasníme ciele a rozsah projektu." },
+          { icon: "", title: "Návrh a dizajn", text: "Pripravíme dizajn na mieru a odsúhlasíme smerovanie." },
+          { icon: "", title: "Spustenie", text: "Web nasadíme, otestujeme a odovzdáme aj s podporou." },
+        ],
+      },
+      render: (p) => <Steps {...p} />,
+    },
+
+    Timeline: {
+      label: "Časová os (34)",
+      fields: {
+        sectionId: idField,
+        heading:    { type: "text", label: "Nadpis", contentEditable: true },
+        subheading: { type: "textarea", label: "Popis", contentEditable: true },
+        items: { type: "array", label: "Míľniky",
+          arrayFields: {
+            date:  { type: "text", label: "Dátum / obdobie" },
+            title: { type: "text", label: "Titulok" },
+            text:  { type: "textarea", label: "Text" },
+          },
+          getItemSummary: (it) => it.title || "Míľnik" },
+      },
+      defaultProps: {
+        sectionId: "historia", heading: "Naša cesta", subheading: "",
+        items: [
+          { date: "2021", title: "Založenie", text: "Začali sme ako dvojčlenné štúdio s dôrazom na kvalitný dizajn." },
+          { date: "2023", title: "Prvých 50 projektov", text: "Rozšírili sme tím a portfólio o e-shopy a webové aplikácie." },
+          { date: "2026", title: "MediaVolt dnes", text: "Kompletné digitálne riešenia od stratégie po nasadenie a rast." },
+        ],
+      },
+      render: (p) => <Timeline {...p} />,
+    },
+
+    ComparisonTable: {
+      label: "Porovnávacia tabuľka (68)",
+      fields: {
+        sectionId: idField,
+        heading:    { type: "text", label: "Nadpis", contentEditable: true },
+        subheading: { type: "textarea", label: "Popis", contentEditable: true },
+        cols: { type: "array", label: "Stĺpce (balíky)",
+          arrayFields: {
+            label:       { type: "text", label: "Názov" },
+            highlighted: { type: "radio", label: "Zvýrazniť", options: [
+              { label: "Áno", value: true }, { label: "Nie", value: false },
+            ]},
+          },
+          getItemSummary: (it) => it.label || "Stĺpec" },
+        rows: { type: "array", label: "Riadky (funkcie)",
+          arrayFields: {
+            feature: { type: "text", label: "Funkcia" },
+            values:  { type: "text", label: "Hodnoty (oddeľ |, napr. ✓|✓|✕)" },
+          },
+          getItemSummary: (it) => it.feature || "Riadok" },
+      },
+      defaultProps: {
+        sectionId: "", heading: "Porovnanie balíkov", subheading: "",
+        cols: [
+          { label: "Štart", highlighted: false },
+          { label: "Biznis", highlighted: true },
+          { label: "Na mieru", highlighted: false },
+        ],
+        rows: [
+          { feature: "Počet podstránok", values: "1|6|∞" },
+          { feature: "Animácie a efekty", values: "✕|✓|✓" },
+          { feature: "SEO optimalizácia", values: "základ|✓|✓" },
+          { feature: "E-shop / rezervácie", values: "✕|✕|✓" },
+          { feature: "Prioritná podpora", values: "✕|✓|✓" },
+        ],
+      },
+      render: (p) => <ComparisonTable {...p} />,
+    },
+
+    PortfolioGrid: {
+      label: "Portfólio mriežka (37)",
+      fields: {
+        sectionId: idField,
+        heading:    { type: "text", label: "Nadpis", contentEditable: true },
+        subheading: { type: "textarea", label: "Popis", contentEditable: true },
+        columns: { type: "select", label: "Stĺpce", options: [
+          { label: "2", value: 2 }, { label: "3", value: 3 }, { label: "4", value: 4 },
+        ]},
+        items: { type: "array", label: "Projekty",
+          arrayFields: {
+            image: imageField("Obrázok"),
+            title: { type: "text", label: "Názov" },
+            tag:   { type: "text", label: "Štítok (napr. Web, E-shop)" },
+            href:  { type: "text", label: "Odkaz" },
+          },
+          getItemSummary: (it) => it.title || "Projekt" },
+      },
+      defaultProps: {
+        sectionId: "portfolio", heading: "Vybrané práce", subheading: "", columns: 3,
+        items: [
+          { image: "https://picsum.photos/seed/pf1/640/480", title: "Kvetinárstvo Flora", tag: "Web", href: "#" },
+          { image: "https://picsum.photos/seed/pf2/640/480", title: "Nordix s.r.o.", tag: "E-shop", href: "#" },
+          { image: "https://picsum.photos/seed/pf3/640/480", title: "Helios Fitness", tag: "Rezervácie", href: "#" },
+          { image: "https://picsum.photos/seed/pf4/640/480", title: "Brixel Studio", tag: "Portfólio", href: "#" },
+          { image: "https://picsum.photos/seed/pf5/640/480", title: "Datura App", tag: "Web app", href: "#" },
+          { image: "https://picsum.photos/seed/pf6/640/480", title: "Kvant Consulting", tag: "Web", href: "#" },
+        ],
+      },
+      render: (p) => <PortfolioGrid {...p} />,
+    },
+
+    BeforeAfter: {
+      label: "Pred / Po (38)",
+      fields: {
+        sectionId: idField,
+        heading:     { type: "text", label: "Nadpis", contentEditable: true },
+        subheading:  { type: "textarea", label: "Popis", contentEditable: true },
+        before:      imageField("Obrázok „Pred“"),
+        after:       imageField("Obrázok „Po“"),
+        labelBefore: { type: "text", label: "Popisok — Pred" },
+        labelAfter:  { type: "text", label: "Popisok — Po" },
+      },
+      defaultProps: {
+        sectionId: "", heading: "Redizajn, ktorý vidno", subheading: "Potiahnite posuvník.",
+        before: "https://picsum.photos/seed/before/900/506?grayscale",
+        after: "https://picsum.photos/seed/after/900/506",
+        labelBefore: "Pred", labelAfter: "Po",
+      },
+      render: (p) => <BeforeAfter {...p} />,
+    },
+
+    LogoCloud: {
+      label: "Logo mriežka (67)",
+      fields: {
+        sectionId: idField,
+        heading: { type: "text", label: "Nadpis (voliteľný)", contentEditable: true },
+        items: { type: "array", label: "Logá",
+          arrayFields: {
+            label: { type: "text", label: "Text (ak bez obrázka)" },
+            image: imageField("Logo (voliteľné)"),
+          },
+          getItemSummary: (it) => it.label || (it.image ? "Logo" : "Položka") },
+      },
+      defaultProps: {
+        sectionId: "", heading: "Dôverujú nám",
+        items: [
+          { label: "ACME", image: "" }, { label: "Nordix", image: "" },
+          { label: "Kvant", image: "" }, { label: "Helios", image: "" },
+          { label: "Brixel", image: "" }, { label: "Datura", image: "" },
+        ],
+      },
+      render: (p) => <LogoCloud {...p} />,
+    },
+
+    Newsletter: {
+      label: "Newsletter (81)",
+      fields: {
+        sectionId:   idField,
+        heading:     { type: "text", label: "Nadpis", contentEditable: true },
+        subheading:  { type: "textarea", label: "Popis", contentEditable: true },
+        buttonLabel: { type: "text", label: "Tlačidlo" },
+        note:        { type: "text", label: "Poznámka pod formulárom" },
+      },
+      defaultProps: {
+        sectionId: "", heading: "Zostaňte v obraze",
+        subheading: "Tipy k webu a digitálnemu marketingu raz mesačne. Žiadny spam.",
+        buttonLabel: "Prihlásiť sa", note: "Odhlásiť sa môžete kedykoľvek.",
+      },
+      render: (p) => <Newsletter {...p} />,
+    },
+
+    Embed: {
+      label: "Embed HTML (advanced)",
+      fields: {
+        sectionId: idField,
+        html:      codeField("HTML kód (mapy, video, widgety…)", "HTML", 10),
+        contained: { type: "radio", label: "Rámček / odsadenie", options: [
+          { label: "Áno", value: true }, { label: "Nie (na celú šírku)", value: false },
+        ]},
+      },
+      defaultProps: {
+        sectionId: "",
+        html: '<iframe src="https://www.openstreetmap.org/export/embed.html?bbox=17.10%2C48.14%2C17.12%2C48.15" width="100%" height="320" style="border:0;border-radius:10px" loading="lazy"></iframe>',
+        contained: true,
+      },
+      render: (p) => <Embed {...p} />,
+    },
+
+    CodeBlock: {
+      label: "Code blok / terminál (98)",
+      fields: {
+        sectionId: idField,
+        title: { type: "text", label: "Titulok okna" },
+        lang:  { type: "text", label: "Jazyk (badge, voliteľné)" },
+        code:  codeField("Kód", "", 10),
+      },
+      defaultProps: {
+        sectionId: "", title: "app.sh", lang: "bash",
+        code: "$ npm create mediavolt@latest\n✓ Projekt pripravený\n$ npm run dev\n➜  http://localhost:5173",
+      },
+      render: (p) => <CodeBlock {...p} />,
     },
   },
 };

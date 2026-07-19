@@ -74,3 +74,33 @@ export const imageField = (label) => ({
 });
 
 export const idField = { type: "text", label: "ID sekcie (kotva pre menu)" };
+
+// ── Code field (Fáza 4 — advanced code režim, MD §5) ────────────
+// Odľahčený mono editor (Tab = 2 medzery). Upgrade cesta: Monaco/Sandpack
+// je možné doplniť neskôr bez zmeny kontraktu — hodnota je stále string.
+function CodeFieldUI({ value, onChange, lang, rows }) {
+  const onKey = (e) => {
+    if (e.key !== "Tab") return;
+    e.preventDefault();
+    const el = e.target, s = el.selectionStart, en = el.selectionEnd;
+    const next = (value || "").slice(0, s) + "  " + (value || "").slice(en);
+    onChange(next);
+    requestAnimationFrame(() => { el.selectionStart = el.selectionEnd = s + 2; });
+  };
+  return (
+    <div style={{ display: "grid", gap: 4 }}>
+      <textarea value={value || ""} onChange={(e) => onChange(e.target.value)} onKeyDown={onKey}
+        spellCheck={false} rows={rows || 8}
+        style={{ fontFamily: "ui-monospace,SFMono-Regular,Menlo,Consolas,monospace", fontSize: 12.5,
+          lineHeight: 1.5, padding: "8px 10px", border: "1px solid #ccc", borderRadius: 6,
+          background: "#0d0d0f", color: "#e8e8ea", whiteSpace: "pre", overflowX: "auto", tabSize: 2, resize: "vertical" }} />
+      {lang && <span style={{ fontSize: 10.5, color: "#999", justifySelf: "end" }}>{lang} · Tab = odsadenie</span>}
+    </div>
+  );
+}
+
+export const codeField = (label, lang = "", rows = 8) => ({
+  type: "custom",
+  label,
+  render: ({ value, onChange }) => <CodeFieldUI value={value} onChange={onChange} lang={lang} rows={rows} />,
+});
