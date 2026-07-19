@@ -15,7 +15,22 @@ debounce autosave 800 ms, anon-key + slug ochrana, deploy na Vercel/Cloudflare P
 |---|---|
 | `/` | Admin — zoznam stránok, vytváranie, mazanie (heslo `VITE_ADMIN_PASSWORD`) |
 | `/?page=slug` | Editor (Puck) — autosave do Supabase, Ctrl/Cmd+S = okamžité uloženie |
+| `/?builder=slug` | **MV Builder** — vlastný drag & drop engine (rovnaký JSON kontrakt ako Puck) |
 | `/?view=slug` | Publikovaný render — lazy chunk **bez** editora |
+
+## MV Builder (vlastný engine, `src/builder/`)
+
+Samostatný editor na princípe Puck — tri oddelené vrstvy (MD §2.1), každá v
+samostatnom module:
+
+| Vrstva | Súbor | Obsah |
+|---|---|---|
+| Dátový model | `builder/model.js` | čisté operácie nad JSON stromom (insert/move/duplicate/update/remove) + undo/redo história s coalesce |
+| Render | `builder/MVRender.jsx` | číta JSON, renderuje cez zdieľaný registry; nič z editor UI |
+| Editor | `builder/MVBuilder.jsx` + `builder.css` | paleta (drag alebo dvojklik), vrstvy, canvas s drop indikátormi, auto-generovaný property panel z registry fieldov, viewport prepínač, klávesy (Ctrl+Z/Y/S, Delete), volt dizajn |
+
+Obe rozhrania (Puck aj MV Builder) čítajú **ten istý** `puck.config.jsx` a ukladajú
+**ten istý** JSON do `cb_pages` — stránku môžeš striedavo upravovať v oboch.
 
 Tlačidlo **Publish** v editore uloží JSON, označí stránku `published` a otvorí náhľad.
 

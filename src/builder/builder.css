@@ -1,0 +1,99 @@
+/* ═══════════════════════════════════════════════════════════════
+   MV Builder — editor UI vo volt téme (tokeny z app.css :root)
+   ═══════════════════════════════════════════════════════════════ */
+.mvb{display:flex;flex-direction:column;height:100vh;background:var(--bg);color:var(--text);
+  font-family:Inter,system-ui,sans-serif;overflow:hidden}
+
+/* horná lišta */
+.mvb-top{display:flex;align-items:center;gap:14px;height:52px;padding:0 14px;flex:0 0 auto;
+  background:var(--panel);border-bottom:1px solid var(--border)}
+.mvb-logo{color:var(--text);text-decoration:none;font-weight:800;font-size:15px;white-space:nowrap}
+.mvb-logo b{color:var(--volt)}
+.mvb-page{color:var(--muted);font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px}
+.mvb-top__mid{display:flex;gap:4px;margin:0 auto}
+.mvb-vp{background:none;border:1px solid transparent;border-radius:8px;padding:5px 10px;cursor:pointer;
+  color:var(--muted);font-size:14px}
+.mvb-vp.on{border-color:var(--volt);color:var(--text);background:var(--volt-soft)}
+.mvb-top__right{display:flex;align-items:center;gap:8px}
+.mvb-sm{padding:7px 12px !important;font-size:13px !important}
+
+/* rozloženie */
+.mvb-body{display:flex;flex:1;min-height:0}
+.mvb-left,.mvb-right{width:250px;flex:0 0 auto;overflow-y:auto;background:var(--panel);padding:12px}
+.mvb-left{border-right:1px solid var(--border)}
+.mvb-right{border-left:1px solid var(--border);width:280px}
+.mvb-panel__title{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--muted);margin:14px 0 8px}
+.mvb-panel__title:first-child{margin-top:2px}
+.mvb-dim{color:var(--muted);font-size:12px;padding:4px 2px}
+
+/* paleta */
+.mvb-pal{display:grid;gap:5px}
+.mvb-pal__item{padding:8px 10px;background:var(--card);border:1px solid var(--border);border-radius:9px;
+  font-size:13px;cursor:grab;user-select:none;transition:border-color .12s, background .12s}
+.mvb-pal__item:hover{border-color:var(--volt);background:var(--volt-soft)}
+.mvb-pal__item:active{cursor:grabbing}
+
+/* vrstvy */
+.mvb-layers{display:grid;gap:3px}
+.mvb-layer{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:6px 9px;
+  border-radius:8px;font-size:13px;cursor:pointer;border:1px solid transparent}
+.mvb-layer:hover{background:var(--card)}
+.mvb-layer.on{border-color:var(--volt);background:var(--volt-soft)}
+.mvb-layer__btns{display:none;gap:2px}
+.mvb-layer:hover .mvb-layer__btns{display:inline-flex}
+.mvb-layer__btns button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:1px 4px}
+.mvb-layer__btns button:hover{color:var(--text)}
+
+/* canvas */
+.mvb-canvas{flex:1;min-width:0;overflow:auto;padding:22px;background:
+  radial-gradient(circle at 50% 0%,rgba(255,106,0,.05),transparent 60%),var(--bg)}
+.mvb-frame{margin:0 auto;max-width:100%;transition:width .25s ease;border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;box-shadow:0 18px 60px rgba(0,0,0,.5);background:#000;min-height:70vh}
+.mvb-frame__in{min-height:70vh}
+.mvb-empty{display:flex;align-items:center;justify-content:center;min-height:70vh;color:var(--muted);
+  font-size:14px;border:2px dashed var(--border);border-radius:12px;margin:14px}
+
+/* sekcie na plátne */
+.mvb-sec{position:relative}
+.mvb-sec__overlay{position:absolute;inset:0;z-index:5;cursor:pointer}
+.mvb-sec.on .mvb-sec__overlay{outline:2px solid var(--volt);outline-offset:-2px}
+.mvb-sec:hover .mvb-sec__overlay{box-shadow:inset 0 0 0 1px var(--volt-glow)}
+.mvb-sec.drop-before::before{content:"";position:absolute;top:-2px;left:0;right:0;height:3px;
+  background:var(--volt);z-index:9;box-shadow:0 0 12px var(--volt-glow)}
+.mvb-dropline{height:3px;background:var(--volt);box-shadow:0 0 12px var(--volt-glow)}
+.mvb-sec__bar{position:absolute;top:6px;right:8px;z-index:6;display:none;align-items:center;gap:4px;
+  background:var(--panel);border:1px solid var(--border-strong);border-radius:8px;padding:3px 6px;font-size:12px}
+.mvb-sec:hover .mvb-sec__bar,.mvb-sec.on .mvb-sec__bar{display:inline-flex}
+.mvb-sec__drag{cursor:grab;color:var(--muted);padding:0 2px}
+.mvb-sec__name{color:var(--muted);font-size:11px;margin-right:2px}
+.mvb-sec__bar button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:12px;padding:1px 3px}
+.mvb-sec__bar button:hover{color:var(--volt-2)}
+
+/* fieldy */
+.mvb-field{margin-bottom:12px}
+.mvb-field>label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px}
+.mvb-in{width:100%;box-sizing:border-box;background:var(--card);border:1px solid var(--border);
+  border-radius:8px;color:var(--text);padding:8px 10px;font-size:13px;font-family:inherit}
+.mvb-in:focus{outline:none;border-color:var(--volt)}
+.mvb-radio{display:flex;gap:6px;flex-wrap:wrap}
+.mvb-radio label{display:flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid var(--border);
+  border-radius:8px;font-size:12px;cursor:pointer;color:var(--muted)}
+.mvb-radio label.on{border-color:var(--volt);color:var(--text);background:var(--volt-soft)}
+.mvb-radio input{display:none}
+
+/* array field */
+.mvb-arr{display:grid;gap:5px}
+.mvb-arr__item{border:1px solid var(--border);border-radius:9px;background:var(--card);overflow:hidden}
+.mvb-arr__head{display:flex;align-items:center;justify-content:space-between;padding:7px 9px;
+  font-size:12px;cursor:pointer}
+.mvb-arr__sum{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mvb-arr__btns{display:inline-flex;gap:2px}
+.mvb-arr__btns button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:11px;padding:1px 3px}
+.mvb-arr__btns button:hover{color:var(--volt-2)}
+.mvb-arr__body{padding:9px;border-top:1px solid var(--border)}
+.mvb-arr__add{background:none;border:1px dashed var(--border-strong);border-radius:9px;color:var(--muted);
+  padding:7px;font-size:12px;cursor:pointer}
+.mvb-arr__add:hover{border-color:var(--volt);color:var(--text)}
+
+/* MV Builder fieldy majú tmavé pozadie — svetlé custom fieldy (color/image z fields.jsx) nechávame ako sú */
