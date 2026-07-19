@@ -40,8 +40,9 @@ nastavuje root komponentu v editore (farby stránky = props root uzla, MD §3).
 ## Setup
 
 1. **Supabase** — v existujúcom WebQuote projekte spusti `supabase-setup.sql`
-   (tabuľka `cb_pages`) a `supabase-versions.sql` (tabuľka `cb_page_versions`;
-   nekolidujú s `wq_sessions`).
+   (tabuľka `cb_pages`), `supabase-versions.sql` (tabuľka `cb_page_versions`)
+   a `supabase-storage-messages.sql` (Storage bucket `cb-assets` + tabuľka
+   `cb_messages`; nekolidujú s `wq_sessions`).
 2. **.env** — skopíruj `.env.example` a doplň (rovnaké hodnoty ako WebQuote):
    ```
    VITE_SUPABASE_URL=https://xxxx.supabase.co
@@ -65,13 +66,14 @@ Nastav tri `VITE_*` premenné v hostingu a redeployni.
 - [x] **Fáza 0** — skeleton, JSON schéma (Puck data model), registry overený
 - [x] **Fáza 1 (MVP)** — drag & drop, 12 komponentov, auto-generovaný property panel, save/load
 - [x] **Fáza 2** — šablóny stránok (presets), image field, inline text edit, 14 komponentov
-- [~] **Fáza 3** — verzovanie hotové (snapshot/publish → história → restore, drží 20 verzií);
-  zostáva: asset upload cez Supabase Storage, SSR render
-- [ ] **Fáza 4** — kolaborácia (Realtime broadcast ako WebQuote), AI generovanie sekcií
+- [x] **Fáza 3** — verzovanie (snapshot/publish → história → restore, drží 20 verzií),
+  upload obrázkov do Supabase Storage (bucket `cb-assets`, tlačidlo/drag & drop v image
+  fielde), kontaktný formulár ukladá do `cb_messages` (schránka 📬 v admine, `mailto:`
+  fallback bez Supabase), validácia + migrácia JSON schémy pri načítaní (`src/lib/schema.js`)
+- [ ] **Fáza 4** — kolaborácia (Realtime broadcast ako WebQuote), AI generovanie sekcií, SSR render
 
 Poznámky:
 - Undo/redo, iframe canvas, responsive prepínač a strom komponentov má Puck vstavané.
-- Kontaktný formulár je zatiaľ `mailto:` fallback — produkčné odoslanie príde vo Fáze 3.
 - Ďalšie komponenty z knižnice (100 ks) sa pridávajú do `puck.config.jsx` podľa
   mapovania v `COMPONENTS/WEBQUOTE-PROMPT-APPENDIX.md`.
 

@@ -4,6 +4,7 @@ import { Puck } from "@puckeditor/core";
 import "@puckeditor/core/puck.css";
 import { config } from "./puck.config.jsx";
 import { loadPage, savePage, makeAutosaver, saveVersion, listVersions, loadVersion } from "./lib/supabase.js";
+import { migratePageData } from "./lib/schema.js";
 import "./app.css";
 
 function VersionHistory({ pageId, onClose, onRestore }) {
@@ -41,7 +42,7 @@ export default function Editor({ pageId }) {
   useEffect(() => {
     loadPage(pageId).then((row) => {
       if (!row) { setMissing(true); return; }
-      const data = row.data && row.data.content ? row.data : { content: [], root: { props: { title: row.name } }, zones: {} };
+      const data = migratePageData(row.data, { title: row.name }); // validácia + migrácia schémy (Fáza 3)
       latest.current = data;
       setInitial(data);
       saver.current = makeAutosaver(pageId);

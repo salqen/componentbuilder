@@ -220,30 +220,53 @@ export function CTABanner({ sectionId, heading, text, ctaLabel, ctaHref }) {
   );
 }
 
-// ── 10 Contact form ────────────────────────────────────────────
+// ── 10 Contact form (Fáza 3: ukladá do cb_messages, mailto fallback) ──
+import { hasSupabase, submitMessage } from "../lib/supabase.js";
+
+function currentPageId() {
+  const q = new URLSearchParams(window.location.search);
+  return q.get("view") || q.get("page") || "";
+}
+
 export function ContactForm({ sectionId, heading, subheading, buttonLabel = "Odoslať", email }) {
-  const [sent, setSent] = useState(false);
-  const submit = (e) => {
+  const [state, setState] = useState("idle"); // idle | sending | sent | error
+  const submit = async (e) => {
     e.preventDefault();
-    // MVP: mailto fallback — produkčné odoslanie sa rieši vo Fáze 3 (API/Supabase)
-    if (email) {
-      const f = new FormData(e.target);
-      window.location.href = "mailto:" + email +
-        "?subject=" + encodeURIComponent("Správa z webu — " + (f.get("name") || "")) +
-        "&body=" + encodeURIComponent((f.get("message") || "") + "\n\n" + (f.get("from") || ""));
+    const f = new FormData(e.target);
+    const payload = { name: f.get("name") || "", from: f.get("from") || "", message: f.get("message") || "" };
+    if (hasSupabase) {
+      setState("sending");
+      try {
+        await submitMessage({ pageId: currentPageId(), name: payload.name, email: payload.from, message: payload.message });
+        setState("sent");
+        return;
+      } catch (err) {
+        console.error(err);
+        setState("error"); // spadne na mailto nižšie, ak je email
+      }
     }
-    setSent(true);
+    // fallback bez Supabase (alebo pri chybe): mailto
+    if (email) {
+      window.location.href = "mailto:" + email +
+        "?subject=" + encodeURIComponent("Správa z webu — " + payload.name) +
+        "&body=" + encodeURIComponent(payload.message + "\n\n" + payload.from);
+      setState("sent");
+    }
   };
   return (
     <Sec id={sectionId} head={heading} sub={subheading}>
-      {sent ? (
+      {state === "sent" ? (
         <div className="mv-form__ok">✓ Ďakujeme, správa je na ceste.</div>
       ) : (
         <form className="mv-form" onSubmit={submit}>
           <input name="name" placeholder="Meno" required />
           <input name="from" type="email" placeholder="E-mail" required />
           <textarea name="message" placeholder="Správa" required />
-          <button className="mv-btn mv-btn--primary" style={{ justifyContent: "center" }}>{buttonLabel}</button>
+          <button className="mv-btn mv-btn--primary" disabled={state === "sending"}
+            style={{ justifyContent: "center" }}>
+            {state === "sending" ? "Odosielam…" : buttonLabel}
+          </button>
+          {state === "error" && <div style={{ color: "#e66", fontSize: 13 }}>Odoslanie zlyhalo — skúste znova alebo napíšte na {email}.</div>}
         </form>
       )}
     </Sec>

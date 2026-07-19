@@ -107,3 +107,45 @@ export async function loadVersion(versionId) {
   if (error) throw error;
   return data.data;
 }
+
+// ── Fáza 3: Supabase Storage — upload obrázkov (bucket cb-assets) ──
+const BUCKET = "cb-assets";
+const MAX_UPLOAD = 5 * 1024 * 1024; // musí sedieť s limitom bucketu (SQL)
+
+export async function uploadImage(file) {
+  if (!hasSupabase) throw new Error("Supabase nie je nakonfigurované");
+  if (!file.type.startsWith("image/")) throw new Error("Súbor nie je obrázok");
+  if (file.size > MAX_UPLOAD) throw new Error("Obrázok je väčší než 5 MB");
+  const ext = (file.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const path = new Date().toISOString().slice(0, 10) + "/" +
+    Math.random().toString(36).slice(2, 10) + "-" + Date.now().toString(36) + "." + ext;
+  const { error } = await supabase.storage.from(BUCKET)
+    .upload(path, file, { contentType: file.type, cacheControl: "31536000" });
+  if (error) throw error;
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path);
+  return data.publicUrl;
+}
+
+// ── Fáza 3: správy z kontaktného formulára (cb_messages) ───────────
+export async function submitMessage({ pageId, name, email, message }) {
+  const { error } = await supabase.from("cb_messages")
+    .insert({ page_id: pageId || null, name, email, message });
+  if (error) throw error;
+}
+
+export async function listMessages() {
+  const { data, error } = await supabase.from("cb_messages")
+    .select("*").order("created_at", { ascending: false }).limit(200);
+  if (error) throw error;
+  return data;
+}
+
+export async function markMessageRead(id, read = true) {
+  const { error } = await supabase.from("cb_messages").update({ read }).eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteMessage(id) {
+  const { error } = await supabase.from("cb_messages").delete().eq("id", id);
+  if (error) throw error;
+}
