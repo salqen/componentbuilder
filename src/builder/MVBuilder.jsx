@@ -11,6 +11,7 @@ import { MVRender } from "./MVRender.jsx";
 import { newNode, ops, createHistory, commit, undo, redo } from "./model.js";
 import { loadPage, savePage, makeAutosaver, saveVersion } from "../lib/supabase.js";
 import { joinPage } from "../lib/realtime.js";
+import { generateSections } from "../lib/ai.js";
 import { migratePageData } from "../lib/schema.js";
 import "../app.css";
 import "./builder.css";
@@ -87,6 +88,44 @@ function ArrayField({ def, value, onChange }) {
   );
 }
 
+// ── ✨ AI panel (Fáza 4 — generovanie sekcií z promptu) ────────
+function AIPanel({ onClose, onResult }) {
+  const [prompt, setPrompt] = useState("");
+  const [mode, setMode] = useState("add");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+  const go = async () => {
+    if (!prompt.trim() || busy) return;
+    setBusy(true); setErr("");
+    try { onResult(await generateSections(prompt.trim(), mode), mode); }
+    catch (e) { setErr(String(e.message || e)); setBusy(false); return; }
+    setBusy(false); onClose();
+  };
+  return (
+    <div className="mvb-ai" onClick={(e) => e.stopPropagation()}>
+      <div className="mvb-panel__title">✨ AI sekcie
+        <button className="mvb-ai__x" onClick={onClose}>✕</button>
+      </div>
+      <textarea className="mvb-in" rows={4} autoFocus value={prompt}
+        placeholder="Napr.: cenník pre kaderníctvo s 3 balíkmi + sekcia referencií…"
+        onChange={(e) => setPrompt(e.target.value)}
+        onKeyDown={(e) => { if ((e.metaKey || e.ctrlKey) && e.key === "Enter") go(); }} />
+      <div className="mvb-radio" style={{ margin: "8px 0" }}>
+        <label className={mode === "add" ? "on" : ""}>
+          <input type="radio" checked={mode === "add"} onChange={() => setMode("add")} />Pridať na koniec
+        </label>
+        <label className={mode === "replace" ? "on" : ""}>
+          <input type="radio" checked={mode === "replace"} onChange={() => setMode("replace")} />Celá stránka (nahradí obsah)
+        </label>
+      </div>
+      {err && <div className="mvb-ai__err">{err}</div>}
+      <button className="btn btn-volt" style={{ width: "100%" }} disabled={busy || !prompt.trim()} onClick={go}>
+        {busy ? "⏳ Generujem…" : "Generovať"}
+      </button>
+    </div>
+  );
+}
+
 function FieldsPanel({ title, fields, values, onPatch }) {
   return (
     <>
@@ -110,6 +149,7 @@ export default function MVBuilder({ pageId }) {
   const [sel, setSel] = useState(null);        // index | "root" | null
   const [dropAt, setDropAt] = useState(null);  // insert indikátor
   const [vp, setVp] = useState("desktop");
+  const [aiOpen, setAiOpen] = useState(false);
   const [status, setStatus] = useState("saved");
   const [online, setOnline] = useState(1);
   const saver = useRef(null);
@@ -217,6 +257,7 @@ export default function MVBuilder({ pageId }) {
             onClick={() => setHist((x) => { const n = undo(x); saver.current?.push(n.present); rt.current?.send(n.present); return n; })}>↶</button>
           <button className="btn btn-ghost mvb-sm" disabled={!hist.future.length}
             onClick={() => setHist((x) => { const n = redo(x); saver.current?.push(n.present); rt.current?.send(n.present); return n; })}>↷</button>
+          <button className="btn btn-ghost mvb-sm" onClick={() => setAiOpen((v) => !v)}>✨ AI</button>
           <a className="btn btn-ghost mvb-sm" href={"/?view=" + pageId} target="_blank" rel="noreferrer">Náhľad</a>
           <button className="btn btn-volt mvb-sm" onClick={async () => {
             await savePage(pageId, data, { publish: true });
@@ -225,6 +266,20 @@ export default function MVBuilder({ pageId }) {
           }}>Publikovať</button>
         </div>
       </header>
+
+      {aiOpen && (
+        <AIPanel onClose={() => setAiOpen(false)} onResult={(nodes, mode) => {
+          // sanitizácia: cez schema migráciu (neznáme typy von, defaulty dnu) + nové id
+          const clean = migratePageData({ content: nodes, root: data.root, zones: {} }).content
+            .map((n) => ({ ...n, props: { ...n.props, id: n.type + "-" + Math.random().toString(36).slice(2, 8) } }));
+          if (!clean.length) return;
+          const next = mode === "replace"
+            ? { ...data, content: clean }
+            : { ...data, content: [...data.content, ...clean] };
+          apply(next);
+          setSel(mode === "replace" ? 0 : data.content.length);
+        }} />
+      )}
 
       <div className="mvb-body">
         {/* ── Ľavý panel: paleta + vrstvy ── */}

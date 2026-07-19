@@ -2,7 +2,7 @@
    MV Builder — editor UI vo volt téme (tokeny z app.css :root)
    ═══════════════════════════════════════════════════════════════ */
 .mvb{display:flex;flex-direction:column;height:100vh;background:var(--bg);color:var(--text);
-  font-family:Inter,system-ui,sans-serif;overflow:hidden}
+  font-family:Inter,system-ui,sans-serif;overflow:hidden;position:relative}
 
 /* horná lišta */
 .mvb-top{display:flex;align-items:center;gap:14px;height:52px;padding:0 14px;flex:0 0 auto;
@@ -97,5 +97,14 @@
 .mvb-arr__add{background:none;border:1px dashed var(--border-strong);border-radius:9px;color:var(--muted);
   padding:7px;font-size:12px;cursor:pointer}
 .mvb-arr__add:hover{border-color:var(--volt);color:var(--text)}
+
+/* ✨ AI panel */
+.mvb-ai{position:absolute;top:58px;right:14px;z-index:40;width:320px;background:var(--panel);
+  border:1px solid var(--border-strong);border-radius:12px;padding:14px;
+  box-shadow:0 18px 50px rgba(0,0,0,.55)}
+.mvb-ai .mvb-panel__title{display:flex;justify-content:space-between;align-items:center;margin-top:0}
+.mvb-ai__x{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px}
+.mvb-ai__x:hover{color:var(--text)}
+.mvb-ai__err{color:var(--err);font-size:12px;margin-bottom:8px}
 
 /* MV Builder fieldy majú tmavé pozadie — svetlé custom fieldy (color/image z fields.jsx) nechávame ako sú */
