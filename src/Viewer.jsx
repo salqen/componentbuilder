@@ -3,12 +3,21 @@ import { useEffect, useState } from "react";
 import { Render } from "@puckeditor/core";
 import { config } from "./puck.config.jsx";
 import { loadPage } from "./lib/supabase.js";
+import { joinPage } from "./lib/realtime.js";
 import { migratePageData } from "./lib/schema.js";
 import "./app.css";
 
 export default function Viewer({ pageId }) {
   const [row, setRow] = useState(undefined);
   useEffect(() => { loadPage(pageId).then(setRow).catch(() => setRow(null)); }, [pageId]);
+
+  // Realtime (Fáza 4): živý náhľad — keď niekto edituje, náhľad sa mení okamžite
+  useEffect(() => {
+    const rt = joinPage(pageId, {
+      onData: (data) => setRow((r) => (r ? { ...r, data } : r)),
+    });
+    return () => rt.leave();
+  }, [pageId]);
 
   useEffect(() => {
     if (row?.data?.root?.props?.title) document.title = row.data.root.props.title;

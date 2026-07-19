@@ -10,6 +10,7 @@ import { config } from "../puck.config.jsx";
 import { MVRender } from "./MVRender.jsx";
 import { newNode, ops, createHistory, commit, undo, redo } from "./model.js";
 import { loadPage, savePage, makeAutosaver, saveVersion } from "../lib/supabase.js";
+import { joinPage } from "../lib/realtime.js";
 import { migratePageData } from "../lib/schema.js";
 import "../app.css";
 import "./builder.css";
@@ -110,7 +111,9 @@ export default function MVBuilder({ pageId }) {
   const [dropAt, setDropAt] = useState(null);  // insert indikátor
   const [vp, setVp] = useState("desktop");
   const [status, setStatus] = useState("saved");
+  const [online, setOnline] = useState(1);
   const saver = useRef(null);
+  const rt = useRef(null);
   const histRef = useRef(null);
   histRef.current = hist;
 
@@ -123,6 +126,12 @@ export default function MVBuilder({ pageId }) {
       saver.current = makeAutosaver(pageId);
       saver.current.onStatus(setStatus);
     });
+    // Realtime: zmeny od iných klientov (druhý editor / náhľad) — last-write-wins
+    rt.current = joinPage(pageId, {
+      onData: (remote) => setHist((h) => (h ? commit(h, remote) : h)),
+      onPresence: setOnline,
+    });
+    return () => rt.current?.leave();
   }, [pageId]);
 
   const lastCommit = useRef(0);
@@ -133,6 +142,7 @@ export default function MVBuilder({ pageId }) {
     setHist((h) => {
       const nh = commit(h, next, { coalesce: co });
       saver.current?.push(nh.present);
+      rt.current?.send(nh.present);
       return nh;
     });
   };
@@ -141,8 +151,8 @@ export default function MVBuilder({ pageId }) {
   useEffect(() => {
     const h = (e) => {
       const mod = e.metaKey || e.ctrlKey;
-      if (mod && e.key === "z" && !e.shiftKey) { e.preventDefault(); setHist((x) => { const n = undo(x); saver.current?.push(n.present); return n; }); }
-      else if (mod && (e.key === "y" || (e.key === "z" && e.shiftKey))) { e.preventDefault(); setHist((x) => { const n = redo(x); saver.current?.push(n.present); return n; }); }
+      if (mod && e.key === "z" && !e.shiftKey) { e.preventDefault(); setHist((x) => { const n = undo(x); saver.current?.push(n.present); rt.current?.send(n.present); return n; }); }
+      else if (mod && (e.key === "y" || (e.key === "z" && e.shiftKey))) { e.preventDefault(); setHist((x) => { const n = redo(x); saver.current?.push(n.present); rt.current?.send(n.present); return n; }); }
       else if (mod && e.key === "s") { e.preventDefault(); if (histRef.current) saver.current?.flush(histRef.current.present); }
       else if ((e.key === "Delete" || e.key === "Backspace") && typeof sel === "number" &&
                !/INPUT|TEXTAREA|SELECT/.test(document.activeElement?.tagName || "")) {
@@ -201,11 +211,12 @@ export default function MVBuilder({ pageId }) {
           ))}
         </div>
         <div className="mvb-top__right">
+          {online > 1 && <span className="mvb-online" title={online + " pripojených"}>👥 {online}</span>}
           <span className={"save-badge " + status}>{statusLabel}</span>
           <button className="btn btn-ghost mvb-sm" disabled={!hist.past.length}
-            onClick={() => setHist((x) => { const n = undo(x); saver.current?.push(n.present); return n; })}>↶</button>
+            onClick={() => setHist((x) => { const n = undo(x); saver.current?.push(n.present); rt.current?.send(n.present); return n; })}>↶</button>
           <button className="btn btn-ghost mvb-sm" disabled={!hist.future.length}
-            onClick={() => setHist((x) => { const n = redo(x); saver.current?.push(n.present); return n; })}>↷</button>
+            onClick={() => setHist((x) => { const n = redo(x); saver.current?.push(n.present); rt.current?.send(n.present); return n; })}>↷</button>
           <a className="btn btn-ghost mvb-sm" href={"/?view=" + pageId} target="_blank" rel="noreferrer">Náhľad</a>
           <button className="btn btn-volt mvb-sm" onClick={async () => {
             await savePage(pageId, data, { publish: true });

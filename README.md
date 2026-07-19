@@ -85,7 +85,9 @@ Nastav tri `VITE_*` premenné v hostingu a redeployni.
   upload obrázkov do Supabase Storage (bucket `cb-assets`, tlačidlo/drag & drop v image
   fielde), kontaktný formulár ukladá do `cb_messages` (schránka 📬 v admine, `mailto:`
   fallback bez Supabase), validácia + migrácia JSON schémy pri načítaní (`src/lib/schema.js`)
-- [ ] **Fáza 4** — kolaborácia (Realtime broadcast ako WebQuote), AI generovanie sekcií, SSR render
+- [~] **Fáza 4** — Realtime kolaborácia hotová (`src/lib/realtime.js`, broadcast kanál
+  `cb-page-<id>` ako WebQuote): editory Puck ↔ MV Builder sa synchronizujú naživo,
+  `?view=` funguje ako živý náhľad, presence badge 👥; zostáva: AI sekcie, SSR render
 
 Poznámky:
 - Undo/redo, iframe canvas, responsive prepínač a strom komponentov má Puck vstavané.

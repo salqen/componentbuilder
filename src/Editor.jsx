@@ -4,6 +4,7 @@ import { Puck } from "@puckeditor/core";
 import "@puckeditor/core/puck.css";
 import { config } from "./puck.config.jsx";
 import { loadPage, savePage, makeAutosaver, saveVersion, listVersions, loadVersion } from "./lib/supabase.js";
+import { joinPage } from "./lib/realtime.js";
 import { migratePageData } from "./lib/schema.js";
 import "./app.css";
 
@@ -36,8 +37,12 @@ export default function Editor({ pageId }) {
   const [status, setStatus] = useState("saved");
   const [missing, setMissing] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [online, setOnline] = useState(1);
+  const [rev, setRev] = useState(0); // remount Puck pri remote zmene
   const saver = useRef(null);
+  const rt = useRef(null);
   const latest = useRef(null);
+  const remoteHold = useRef(0);
 
   useEffect(() => {
     loadPage(pageId).then((row) => {
@@ -48,6 +53,17 @@ export default function Editor({ pageId }) {
       saver.current = makeAutosaver(pageId);
       saver.current.onStatus(setStatus);
     });
+    // Realtime (Fáza 4): zmeny od iných klientov → remount Puck s novými dátami
+    rt.current = joinPage(pageId, {
+      onData: (remote) => {
+        latest.current = remote;
+        remoteHold.current = Date.now(); // neechuj remote dáta späť
+        setInitial(remote);
+        setRev((r) => r + 1);
+      },
+      onPresence: setOnline,
+    });
+    return () => rt.current?.leave();
   }, [pageId]);
 
   // Ctrl/Cmd+S — okamžité uloženie
@@ -78,9 +94,15 @@ export default function Editor({ pageId }) {
   return (
     <>
       <Puck
+        key={rev}
         config={config}
         data={initial}
-        onChange={(data) => { latest.current = data; saver.current?.push(data); }}
+        onChange={(data) => {
+          latest.current = data;
+          saver.current?.push(data);
+          // onChange sa volá aj hneď po remounte z remote dát — krátky hold proti echu
+          if (Date.now() - remoteHold.current > 600) rt.current?.send(data);
+        }}
         onPublish={async (data) => {
           await savePage(pageId, data, { publish: true });
           await saveVersion(pageId, data, "publish");
@@ -90,6 +112,7 @@ export default function Editor({ pageId }) {
         overrides={{
           headerActions: ({ children }) => (
             <>
+              {online > 1 && <span className="save-badge saved" title={online + " pripojených"}>👥 {online}</span>}
               <span className={"save-badge " + status}>{statusLabel}</span>
               <a className="btn btn-ghost" href="/" style={{ padding: "8px 14px" }}>Zoznam</a>
               <button className="btn btn-ghost" style={{ padding: "8px 14px" }} onClick={async () => {
