@@ -115,6 +115,7 @@ export default function Admin() {
             <a className="btn btn-ghost" href={"/?page=" + p.id}>✏️ Editor</a>
             <a className="btn btn-ghost" href={"/?builder=" + p.id} title="Vlastný MV Builder engine (rovnaký JSON)">🧱 Builder</a>
             <a className="btn btn-ghost" href={"/?view=" + p.id} target="_blank" rel="noreferrer">👁 Náhľad</a>
+            {p.published && <a className="btn btn-ghost" href={"/p/" + p.id} target="_blank" rel="noreferrer" title="Serverom renderovaná verzia (SEO, rýchly prvý paint)">⚡ SSR</a>}
             <button className="btn btn-danger" title="Zmazať" onClick={async () => {
               if (!confirm("Zmazať „" + (p.name || p.id) + "“?")) return;
               await deletePage(p.id); setPages(pages.filter((x) => x.id !== p.id));

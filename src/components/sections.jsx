@@ -105,7 +105,8 @@ export function BentoGrid({ sectionId, heading, subheading, columns = 3, items =
 // ── 05 Stats (counter-up, IntersectionObserver) ────────────────
 function CountUp({ value = 0, suffix = "" }) {
   const ref = useRef(null);
-  const [n, setN] = useState(0);
+  // SSR: bez okna renderuj rovno cieľovú hodnotu (animácia beží len v prehliadači)
+  const [n, setN] = useState(typeof window === "undefined" ? value : 0);
   useEffect(() => {
     const el = ref.current;
     let raf;

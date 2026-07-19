@@ -1,0 +1,3 @@
+/* CSS pre SSR HTML — tokeny + sekcie (bunduje sa do api/_ssr.mjs ako string) */
+@import "../src/theme.css";
+@import "../src/components/sections.css";

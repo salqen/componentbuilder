@@ -1,3 +1,9 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/p/:slug", "destination": "/api/p?slug=:slug" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ],
+  "functions": {
+    "api/p.js": { "includeFiles": "api/_ssr.mjs" }
+  }
 }

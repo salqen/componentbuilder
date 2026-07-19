@@ -17,6 +17,7 @@ debounce autosave 800 ms, anon-key + slug ochrana, deploy na Vercel/Cloudflare P
 | `/?page=slug` | Editor (Puck) — autosave do Supabase, Ctrl/Cmd+S = okamžité uloženie |
 | `/?builder=slug` | **MV Builder** — vlastný drag & drop engine (rovnaký JSON kontrakt ako Puck) |
 | `/?view=slug` | Publikovaný render — lazy chunk **bez** editora |
+| `/p/slug` | **SSR render** — HTML zo servera (SEO, rýchly prvý paint, edge cache 60 s) |
 
 ## MV Builder (vlastný engine, `src/builder/`)
 
@@ -90,7 +91,9 @@ Nastav tri `VITE_*` premenné v hostingu a redeployni.
   `?view=` funguje ako živý náhľad, presence badge 👥; **AI sekcie** hotové
   (✨ tlačidlo v MV Builderi → prompt → sekcie/celá stránka; serverless
   `api/generate.js`, vyžaduje `ANTHROPIC_API_KEY` vo Vercel env — server-only,
-  nikdy nie `VITE_*`); zostáva: SSR render
+  nikdy nie `VITE_*`); **SSR render** hotový — `/p/slug` (serverless `api/p.js`
+  + bundle `api/_ssr.mjs` generovaný pri builde cez `scripts/build-ssr.mjs`,
+  renderuje MV render vrstvou, publikované stránky, cache 60 s). **Všetky fázy z MD sú hotové.**
 
 Poznámky:
 - Undo/redo, iframe canvas, responsive prepínač a strom komponentov má Puck vstavané.
