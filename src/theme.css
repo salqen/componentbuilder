@@ -1,0 +1,35 @@
+/* ═══════════════════════════════════════════════════════════════
+   Design tokeny — rovnaké názvy ako theme-bridge.css v knižnici.
+   Hodnoty nastavuje editor (root props) cez inline CSS variables.
+   ═══════════════════════════════════════════════════════════════ */
+.mv-page{
+  --primary:#ff6a00;
+  --accent:#ff9540;
+  --bg:#0a0604;
+  --surface:#160d08;
+  --text:#f4ece6;
+  --muted:#8f8378;
+  --border:#2a1d12;
+  --font-body:"Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  --font-head:"Space Grotesk","Inter",sans-serif;
+  --radius:14px;
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--font-body);
+  min-height:100%;
+  -webkit-font-smoothing:antialiased;
+}
+.mv-page *{box-sizing:border-box}
+.mv-container{max-width:1160px;margin:0 auto;padding:0 24px}
+.mv-h{font-family:var(--font-head);letter-spacing:-.02em;line-height:1.1;margin:0}
+.mv-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 22px;border-radius:10px;
+  font-weight:600;font-size:15px;text-decoration:none;cursor:pointer;border:1px solid transparent;
+  transition:transform .15s,box-shadow .15s,background .15s}
+.mv-btn:hover{transform:translateY(-2px)}
+.mv-btn--primary{background:linear-gradient(135deg,var(--primary),var(--accent));color:#fff;
+  box-shadow:0 4px 24px color-mix(in srgb,var(--primary) 35%,transparent)}
+.mv-btn--ghost{background:transparent;color:var(--text);border-color:var(--border)}
+.mv-btn--ghost:hover{border-color:var(--primary)}
+@media (prefers-reduced-motion:reduce){
+  .mv-page *,.mv-page *::before,.mv-page *::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}

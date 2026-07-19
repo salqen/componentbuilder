@@ -1,0 +1,61 @@
+/* ── Admin / chrome — WebQuote volt téma ───────────────────── */
+:root{
+  --bg:#0a0604;--panel:#120b07;--card:#1a1009;--border:#2a1d12;--border-strong:#3a2a1a;
+  --text:#f4ece6;--muted:#8f8378;--volt:#ff6a00;--volt-2:#ff9540;
+  --volt-soft:rgba(255,106,0,.14);--volt-glow:rgba(255,106,0,.35);--ok:#3ddc73;--err:#ff5d5d;
+  --font:"Inter",-apple-system,sans-serif;--font-head:"Space Grotesk","Inter",sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;-webkit-font-smoothing:antialiased}
+.adm{max-width:860px;margin:0 auto;padding:48px 22px}
+.adm-brand{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.adm-mark{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--volt),#c74f00);
+  display:flex;align-items:center;justify-content:center;color:#fff;font-weight:800;font-size:18px;box-shadow:0 0 18px var(--volt-glow)}
+.adm h1{font-family:var(--font-head);font-size:22px;margin:0}
+.adm h1 b{color:var(--volt-2)}
+.adm-sub{color:var(--muted);margin:0 0 32px}
+.adm-new{display:flex;gap:10px;margin-bottom:26px}
+.adm-new input{flex:1;background:var(--panel);border:1px solid var(--border);border-radius:10px;
+  color:var(--text);font-family:inherit;font-size:14px;padding:12px 15px}
+.adm-new input:focus{outline:none;border-color:var(--volt)}
+.btn{display:inline-flex;align-items:center;gap:7px;padding:11px 18px;border-radius:10px;border:1px solid transparent;
+  font-family:inherit;font-weight:600;font-size:13.5px;cursor:pointer;text-decoration:none;transition:all .15s}
+.btn-volt{background:linear-gradient(135deg,var(--volt),#e05b00);color:#fff;box-shadow:0 3px 16px var(--volt-glow)}
+.btn-volt:hover{transform:translateY(-1px)}
+.btn-ghost{background:var(--panel);color:var(--text);border-color:var(--border)}
+.btn-ghost:hover{border-color:var(--volt)}
+.btn-danger{background:none;color:var(--err);border-color:transparent;padding:8px}
+.pg-list{display:grid;gap:10px}
+.pg{display:flex;align-items:center;gap:14px;background:var(--panel);border:1px solid var(--border);
+  border-radius:14px;padding:16px 18px;transition:border-color .15s}
+.pg:hover{border-color:var(--border-strong)}
+.pg-info{flex:1;min-width:0}
+.pg-name{font-weight:600;font-size:15px}
+.pg-meta{color:var(--muted);font-size:12px;margin-top:3px}
+.pg-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px}
+.pg-badge.pub{background:rgba(61,220,115,.12);color:var(--ok)}
+.pg-badge.draft{background:var(--volt-soft);color:var(--volt-2)}
+.adm-empty{color:var(--muted);text-align:center;padding:48px 0;border:1px dashed var(--border);border-radius:14px}
+.adm-err{background:rgba(255,93,93,.1);border:1px solid rgba(255,93,93,.35);color:#ffb4b4;
+  border-radius:12px;padding:14px 18px;line-height:1.55;margin-bottom:20px}
+.gate{min-height:100vh;display:flex;align-items:center;justify-content:center}
+.gate form{display:grid;gap:12px;width:300px}
+.save-badge{font-size:12px;font-weight:600;padding:4px 12px;border-radius:999px;white-space:nowrap}
+.save-badge.saving{background:var(--volt-soft);color:var(--volt-2)}
+.save-badge.saved{background:rgba(61,220,115,.12);color:var(--ok)}
+.save-badge.error{background:rgba(255,93,93,.15);color:var(--err)}
+.adm-tpl{background:var(--panel);border:1px solid var(--border);border-radius:10px;color:var(--text);
+  font-family:inherit;font-size:13.5px;padding:0 12px;cursor:pointer}
+.adm-tpl:focus{outline:none;border-color:var(--volt)}
+.adm-tpl-desc{color:var(--muted);font-size:12.5px;margin:-16px 0 24px 2px}
+/* História verzií */
+.vh-pop{position:fixed;top:60px;right:16px;z-index:100;width:330px;max-height:70vh;overflow:auto;
+  background:var(--panel);border:1px solid var(--border-strong);border-radius:14px;padding:14px;
+  box-shadow:0 18px 48px rgba(0,0,0,.5)}
+.vh-pop h3{font-family:var(--font-head);font-size:14px;margin:2px 4px 12px}
+.vh-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;border:1px solid transparent}
+.vh-item:hover{background:var(--card);border-color:var(--border)}
+.vh-meta{flex:1;min-width:0}
+.vh-date{font-size:12.5px;font-weight:600}
+.vh-label{font-size:11.5px;color:var(--muted)}
+.vh-empty{color:var(--muted);font-size:12.5px;text-align:center;padding:18px 0}
